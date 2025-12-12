@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sr. Burger - App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- ESTILOS GENERALES --- */
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            outline: none; 
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f4f6f8; 
+            margin: 0; 
+            padding: 0; 
+            color: #333; 
+            overscroll-behavior-y: none; 
+        }
+        
+        /* --- CABECERA CORREGIDA (Se mueve con el scroll) --- */
+        header { 
+            background: white; 
+            padding: 15px 10px; 
+            text-align: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            /* CAMBIO AQUÍ: 'relative' hace que suba y baje con la página */
+            position: relative; 
+            z-index: 100; 
+        }
+
+        .logo-main {
+            width: 100px; /* Ajustado para mejor proporción */
+            height: auto;
+            display: block;
+            margin: 0 auto; 
+            border-radius: 50%; 
+        }
+        
+        .header-slogan { margin: 5px 0 0; color: #777; font-size: 0.8rem; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 80px; }
+
+        /* --- PRODUCTOS --- */
+        #grid-productos { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px; 
+            margin-bottom: 30px; 
+        }
+
+        .card { 
+            background: white; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+            text-align: center; 
+            padding-bottom: 12px; 
+            cursor: pointer; 
+            transition: transform 0.1s ease;
+            position: relative;
+        }
+
+        .card:active { transform: scale(0.96); }
+
+        .card img { 
+            width: 100%; 
+            height: 130px; 
+            object-fit: cover; 
+            background: #eee; 
+            display: block;
+        }
+        
+        .card h3 { margin: 12px 0 4px; font-size: 0.95rem; font-weight: 600; }
+        .card .precio { color: #FF5722; font-weight: bold; font-size: 1rem; }
+        
+        /* --- CARRITO --- */
+        .carrito-box { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.05); 
+        }
+        
+        .form-input { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 12px; 
+            border: 1px solid #eee; 
+            border-radius: 8px; 
+            background: #fafafa;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .btn-gps { 
+            background-color: #2196F3; 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            width: 100%; 
+            border-radius: 8px; 
+            margin-bottom: 12px; 
+            font-weight: 500;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            cursor: pointer;
+        }
+
+        .btn-whatsapp { 
+            background: #25D366; 
+            color: white; 
+            width: 100%; 
+            padding: 16px; 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: bold; 
+            font-size: 1.1rem; 
+            cursor: pointer; 
+            margin-top: 15px; 
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+            transition: transform 0.1s;
+        }
+        .btn-whatsapp:active { transform: scale(0.98); }
+
+        .resumen-pago { margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 15px; }
+        .fila-pago { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; color: #555; }
+        .total-final { font-weight: bold; font-size: 1.3rem; color: #333; margin-top: 12px; border-top: 1px solid #eee; padding-top: 10px; }
+        .fila-descuento { color: #28a745; font-weight: bold; display: none; }
+
+        /* --- MODAL (Mejorado para Fotos Grandes) --- */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); /* Fondo un poco más oscuro para resaltar la foto */
+            backdrop-filter: blur(4px); 
+            z-index: 2000; 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.active { display: flex; opacity: 1; }
+
+        .modal-content { 
+            background: white; 
+            width: 90%; 
+            max-width: 400px; 
+            padding: 0; 
+            border-radius: 20px; 
+            text-align: center; 
+            position: relative; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .modal.active .modal-content { transform: scale(1); }
+
+        .modal-img-container {
+            width: 100%;
+            /* HE AUMENTADO LA ALTURA PARA VER MEJOR LA FOTO */
+            height: 280px; 
+            overflow: hidden;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            background: #000; /* Fondo negro por si la imagen no llena todo */
+        }
+        
+        .modal-img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; /* Mantiene la foto llena. Usa 'contain' si no quieres recortes */
+        }
+
+        .modal-body { padding: 25px; }
+
+        .close { 
+            position: absolute; 
+            top: 15px; right: 15px; 
+            background: rgba(255,255,255,0.9);
+            width: 35px; height: 35px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; 
+            cursor: pointer; 
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        .btn-add { 
+            background: #FF5722; 
+            color: white; 
+            border: none; 
+            padding: 14px; 
+            width: 100%; 
+            border-radius: 10px; 
+            margin-top: 15px; 
+            font-size: 1rem; 
+            font-weight: 600;
+        }
+        .btn-add:active { background: #e64a19; }
+        
+        #banner-app { background: #e8f5e9; color: #2e7d32; padding: 12px; text-align: center; font-weight: 500; margin-bottom: 20px; border-radius: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="https://i.postimg.cc/VrZbSSJJ/Logo(1).jpg" alt="Sr Burger Logo" class="logo-main">
+    <p class="header-slogan">Los originales desde 2012</p>
+</header>
+
+<div class="container">
+    
+    <div id="banner-app">📱 ¡Descuento de App activado!</div>
+
+    <h3 style="margin-top: 0; font-weight: 600;">Menú</h3>
+    <div id="grid-productos"></div>
+
+    <div class="carrito-box">
+        <h3 style="margin-top: 0;">🛍️ Tu Pedido</h3>
+        <ul id="lista-carrito" style="padding-left: 0; list-style: none; color: #777; margin-bottom: 15px;">
+            <li style="text-align: center; padding: 10px; border: 1px dashed #ddd; border-radius: 8px;">Tu carrito está vacío</li>
+        </ul>
+
+        <div class="resumen-pago">
+            <div class="fila-pago">
+                <span>Subtotal</span>
+                <span id="subtotal">$0.00</span>
+            </div>
+            
+            <div class="fila-pago fila-descuento" id="fila-descuento">
+                <span>Descuento App (<span id="txt-pct-desc">0</span>%)</span>
+                <span id="monto-descuento">-$0.00</span>
+            </div>
+
+            <div class="fila-pago" style="color: #2196F3;">
+                <span>Envío <span id="lbl-distancia" style="font-size:0.8rem"></span></span>
+                <span id="costo-envio">$0.00</span>
+            </div>
+            <div class="total-final fila-pago">
+                <span>Total</span>
+                <span id="total-final">$0.00</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 25px;">
+            <label style="font-weight: 600; font-size: 0.9rem; margin-bottom: 5px; display: block;">Tus Datos</label>
+            <input type="text" id="nombre" class="form-input" placeholder="Nombre completo">
+            
+            <button class="btn-gps" onclick="obtenerUbicacion()">
+                <span style="font-size: 1.2rem;">📍</span> Usar ubicación actual
+            </button>
+            <textarea id="direccion" class="form-input" rows="2" placeholder="Detalle (Casa, Edificio, Referencia)"></textarea>
+            
+            <button class="btn-whatsapp" onclick="enviarPedido()">Confirmar Pedido</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal" onclick="cerrarModalFuera(event)">
+    <div class="modal-content">
+        <div class="close" onclick="cerrarModal()">×</div>
+        
+        <div class="modal-img-container">
+            <img id="modal-img" class="modal-img" src="" alt="Producto">
+        </div>
+        
+        <div class="modal-body">
+            <h2 id="modal-titulo" style="margin: 0 0 5px 0; font-size: 1.4rem;"></h2>
+            <h3 id="modal-precio" style="margin: 0 0 15px 0; color: #FF5722; font-size: 1.2rem;"></h3>
+            <p id="modal-desc" style="color: #666; line-height: 1.6; font-size: 0.95rem;"></p>
+            <button class="btn-add" onclick="agregarAlCarrito()">Agregar al Carrito</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // ⚙️ CONFIGURACIÓN SR. BURGER
+    // ==========================================
+    const TIENDA_LAT = 8.9915178; 
+    const TIENDA_LON = -79.4982421; 
+    const PRECIO_ESTANDAR = 3.50; 
+    const CELULAR_WHATSAPP = "50767264957"; 
+    const DESCUENTO_APP_PORCENTAJE = 10; 
+    // ==========================================
+    
+    // TUS PRODUCTOS
+    const productos = [
+        { id: 1, nombre: "Hamburguesa Sencilla", precio: 4.50, imagen: "https://i.postimg.cc/VNz4r9Qm/Sencilla.jpg", desc: "Pan brioche, carne artesanal 110g, ensalada de la casa, tomate, cebolla caramelizada, ripio de papa" },
+        { id: 2, nombre: "Hamburguesa Especial", precio: 5.99, imagen: "https://i.postimg.cc/jjRvw60R/Especial-hamburguesa.jpg", desc: "Pan brioche, carne artesanal 110g, queso fundido, tocineta ahumada, ensalada de la casa, tomate, cebolla caramelizada, ripio de papa" },
+         { id: 2, nombre: "Hamburguesa Super", precio: 8.00, imagen: "https://i.postimg.cc/8CTwJdQ1/Super.jpg", desc: "Pan brioche,doble carne artesanal 110g, queso fundido,doble tocineta ahumada, ensalada de la casa, tomate, cebolla caramelizada, ripio de papa" },
+          { id: 2, nombre: "Hot dog pequeño", precio: 3.00, imagen: "https://i.postimg.cc/zfqpbwZZ/Pequeno.jpg", desc: "Pan brioche pequeño, salchicha pequeña, queso, ensalada de la casa, cebolla, ripio de papa" },
+           { id: 2, nombre: "Hot dog grande", precio: 4.50, imagen: "https://i.postimg.cc/zfqpbwm2/Grande.jpg", desc: "Pan brioche, salchicha, queso, ensalada de la casa, cebolla, ripio de papa" },
+            { id: 2, nombre: "Hot dog Especial", precio: 5.50, imagen: "https://i.postimg.cc/xd9gJGr4/Especial.jpg", desc: "Pan brioche, salchicha, queso, ensalada de la casa, cebolla, ripio de papa" },
+             { id: 2, nombre: "Hot dog Americano", precio: 5.50, imagen: "https://i.postimg.cc/BvJNL5Wk/Americano.jpg", desc: "Pan brioche, salchicha americana, queso, ensalada de la casa, cebolla, ripio de papa" },
+        { id: 3, nombre: "Papas Fritas", precio: 1.50, imagen: "https://placehold.co/300x200/yellow/black?text=Papas", desc: "Porción grande de papas corte clásico, crujientes y doradas." },
+        { id: 4, nombre: "Soda", precio: 2.00, imagen: "https://placehold.co/300x200/red/white?text=Soda", desc: "Coca-Cola, Sprite o Ginger Ale bien fría (500ml)." }
+    ];
+
+    let carrito = [];
+    let productoActual = null;
+    let costoEnvioActual = 0;
+    let esApp = false; 
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('modo') === 'app') {
+            esApp = true;
+            document.getElementById('banner-app').style.display = 'block';
+            document.getElementById('fila-descuento').style.display = 'flex';
+            document.getElementById('txt-pct-desc').innerText = DESCUENTO_APP_PORCENTAJE;
+        }
+
+        const grid = document.getElementById('grid-productos');
+        if (!grid) return;
+        productos.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = function() { abrirModal(p); };
+            // Imágenes en la tarjeta con ajuste "cover"
+            card.innerHTML = `<img src="${p.imagen}"><h3>${p.nombre}</h3><div class="precio">$${p.precio.toFixed(2)}</div>`;
+            grid.appendChild(card);
+        });
+        actualizarCarrito();
+    });
+
+    const modal = document.getElementById('modal');
+    
+    function abrirModal(producto) {
+        productoActual = producto;
+        document.getElementById('modal-img').src = producto.imagen;
+        document.getElementById('modal-titulo').innerText = producto.nombre;
+        document.getElementById('modal-desc').innerText = producto.desc;
+        document.getElementById('modal-precio').innerText = "$" + producto.precio.toFixed(2);
+        
+        modal.classList.add('active'); 
+    }
+    
+    function cerrarModal() { 
+        modal.classList.remove('active'); 
+    }
+    
+    function cerrarModalFuera(e) { 
+        if (e.target == modal) cerrarModal(); 
+    }
+
+    function agregarAlCarrito() {
+        carrito.push(productoActual);
+        actualizarCarrito();
+        cerrarModal();
+    }
+
+    function actualizarCarrito() {
+        const lista = document.getElementById('lista-carrito');
+        let subtotal = 0;
+        lista.innerHTML = ""; 
+        
+        if(carrito.length === 0) {
+            lista.innerHTML = "<li style='text-align: center; padding: 10px; border: 1px dashed #ddd; border-radius: 8px;'>Tu carrito está vacío</li>";
+        } else {
+            carrito.forEach(item => {
+                subtotal += item.precio;
+                const li = document.createElement('li');
+                li.style.cssText = "display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;";
+                li.innerHTML = `<span>${item.nombre}</span> <span style="font-weight:bold">$${item.precio.toFixed(2)}</span>`;
+                lista.appendChild(li);
+            });
+        }
+
+        let descuento = 0;
+        if (esApp) descuento = subtotal * (DESCUENTO_APP_PORCENTAJE / 100);
+        
+        let envioFinal = (costoEnvioActual > 0) ? costoEnvioActual : (carrito.length > 0 ? PRECIO_ESTANDAR : 0);
+        let total = (subtotal - descuento) + envioFinal;
+
+        document.getElementById('subtotal').innerText = "$" + subtotal.toFixed(2);
+        document.getElementById('monto-descuento').innerText = "-$" + descuento.toFixed(2);
+        document.getElementById('costo-envio').innerText = "$" + envioFinal.toFixed(2);
+        document.getElementById('total-final').innerText = "$" + total.toFixed(2);
+    }
+
+    const REGLAS_ENVIO = [
+        { km_maximo: 3, precio: 2.00 },
+        { km_maximo: 6, precio: 4.50 },
+        { km_maximo: 10, precio: 8.00 },
+        { km_maximo: 100, precio: 15.00 }
+    ];
+
+    function calcularDistanciaKM(lat1, lon1, lat2, lon2) {
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; 
+    }
+
+    function obtenerUbicacion() {
+        const direccionInput = document.getElementById('direccion');
+        direccionInput.value = "📍 Calculando...";
+        if (!navigator.geolocation) return alert("Tu celular no tiene GPS.");
+        
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const latC = pos.coords.latitude; const lonC = pos.coords.longitude;
+            const dist = calcularDistanciaKM(TIENDA_LAT, TIENDA_LON, latC, lonC);
+            
+            let precio = PRECIO_ESTANDAR;
+            for (let r of REGLAS_ENVIO) { if (dist <= r.km_maximo) { precio = r.precio; break; } }
+            costoEnvioActual = precio;
+            
+            direccionInput.value = `https://www.google.com/maps?q=${latC},${lonC}`;
+            document.getElementById('lbl-distancia').innerText = `(${dist.toFixed(1)} km)`;
+            alert(`📍 Distancia: ${dist.toFixed(1)} km.\nEnvío: $${precio.toFixed(2)}`);
+            actualizarCarrito();
+        }, (err) => { alert("Error GPS. Sube la web a internet."); direccionInput.value=""; });
+    }
+
+    function enviarPedido() {
+        const nombre = document.getElementById('nombre').value;
+        const direccion = document.getElementById('direccion').value;
+        if(carrito.length === 0) return alert("Carrito vacío");
+        if(!nombre || !direccion) return alert("Falta nombre o dirección");
+
+        let subtotal = 0; carrito.forEach(i => subtotal += i.precio);
+        let descuento = 0;
+        if (esApp) descuento = subtotal * (DESCUENTO_APP_PORCENTAJE / 100);
+        let envio = (costoEnvioActual > 0) ? costoEnvioActual : PRECIO_ESTANDAR;
+        let total = (subtotal - descuento) + envio;
+
+        let msg = `Hola, soy *${nombre}*.\nEntrega: ${direccion}\n\n*PEDIDO:*\n`;
+        carrito.forEach(i => { msg += `- ${i.nombre} ($${i.precio})\n`; });
+        
+        msg += `\nSubtotal: $${subtotal.toFixed(2)}`;
+        if (esApp) msg += `\n🎉 Desc. App (${DESCUENTO_APP_PORCENTAJE}%): -$${descuento.toFixed(2)}`;
+        msg += `\nEnvío: $${envio.toFixed(2)}`;
+        msg += `\n*TOTAL: $${total.toFixed(2)}*`;
+        
+        window.open(`https://wa.me/${CELULAR_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+</script>
+</body>
+</html>
